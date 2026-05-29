@@ -1,0 +1,194 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  tags: string[];
+  slug: string;
+  readingTime?: number;
+}
+
+const { title, description, date, tags, slug, readingTime = 5 } = Astro.props;
+
+const formattedDate = new Date(date).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
+// Generate gradient based on first tag
+const getGradient = (tag: string) => {
+  const gradients: Record<string, string> = {
+    python: 'linear-gradient(135deg, #3776ab 0%, #ffd43b 100%)',
+    javascript: 'linear-gradient(135deg, #f7df1e 0%, #323330 100%)',
+    linux: 'linear-gradient(135deg, #fcc624 0%, #000000 100%)',
+    tips: 'linear-gradient(135deg, #f5e642 0%, #ff6b6b 100%)',
+    personal: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    blogging: 'linear-gradient(135deg, #00c6fb 0%, #005bea 100%)',
+    programming: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+    tutorial: 'linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%)',
+  };
+  return gradients[tag] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+};
+
+const primaryTag = tags[0] || 'default';
+const gradientStyle = getGradient(primaryTag);
+---
+
+<article class="post-card">
+  <a href={`/posts/${slug}`} class="post-card-link">
+    <div class="post-card-thumbnail" style={`background: ${gradientStyle}`}>
+      <div class="thumbnail-overlay"></div>
+    </div>
+    
+    <div class="post-card-content">
+      <div class="post-card-tags">
+        {tags.map((tag) => (
+          <span class="tag-badge">{tag}</span>
+        ))}
+      </div>
+      
+      <h3 class="post-card-title">{title}</h3>
+      
+      <p class="post-card-excerpt">{description}</p>
+      
+      <div class="post-card-meta">
+        <span class="post-date">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          {formattedDate}
+        </span>
+        <span class="reading-time">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          {readingTime} min read
+        </span>
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+  .post-card {
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all var(--transition-medium);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .post-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-accent);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  .post-card-link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: inherit;
+  }
+  
+  .post-card-thumbnail {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .thumbnail-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+  }
+  
+  .post-card-content {
+    padding: var(--spacing-md);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .post-card-tags {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .tag-badge {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+  }
+  
+  .post-card-title {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    margin-bottom: var(--spacing-sm);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .post-card-excerpt {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+  
+  .post-card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+  }
+  
+  .post-date,
+  .reading-time {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  @media (max-width: 768px) {
+    .post-card-thumbnail {
+      height: 180px;
+    }
+    
+    .post-card-title {
+      font-size: 1.25rem;
+    }
+  }
+</style>
