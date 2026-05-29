@@ -1,0 +1,335 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog', ({ data }) => {
+  return !data.draft;
+});
+
+// Sort by date descending
+posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Get featured post (latest)
+const featuredPost = posts[0];
+const recentPosts = posts.slice(1, 4);
+
+// Calculate reading time
+const calculateReadingTime = (body: string) => {
+  const wordsPerMinute = 200;
+  const words = body.trim().split(/\s+/).length;
+  return Math.ceil(words / wordsPerMinute);
+};
+
+// Get all unique tags
+const allTags = [...new Set(posts.flatMap(post => post.data.tags))];
+---
+
+<BaseLayout title="YN | BLOG" description="Thoughts on code & life">
+  <Navbar />
+  
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h1 class="hero-title animate-fade-in-up">
+          <span class="hero-title-main">YN</span>
+          <span class="hero-separator">|</span>
+          <span class="hero-title-sub">BLOG</span>
+        </h1>
+        <p class="hero-tagline animate-fade-in-up delay-1">Thoughts on code & life</p>
+        <div class="hero-stats animate-fade-in-up delay-2">
+          <span class="stat">{posts.length} articles</span>
+          <span class="stat-divider">•</span>
+          <span class="stat">{allTags.length} topics</span>
+        </div>
+        <a href="#featured" class="scroll-indicator animate-fade-in-up delay-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+    
+    <!-- Featured Post -->
+    <section id="featured" class="featured-section">
+      <div class="container">
+        <div class="featured-post">
+          <a href={`/posts/${featuredPost.slug}`} class="featured-link">
+            <div class="featured-content">
+              <div class="featured-badge">Featured</div>
+              <h2 class="featured-title">{featuredPost.data.title}</h2>
+              <p class="featured-excerpt">{featuredPost.data.description}</p>
+              <div class="featured-meta">
+                <span class="featured-date">
+                  {new Date(featuredPost.data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </span>
+                <span class="featured-reading-time">
+                  {calculateReadingTime(featuredPost.body)} min read
+                </span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Recent Posts Grid -->
+    <section class="recent-posts-section">
+      <div class="container">
+        <h2 class="section-title">Latest Articles</h2>
+        <div class="posts-grid">
+          {recentPosts.map((post, index) => (
+            <PostCard 
+              title={post.data.title}
+              description={post.data.description}
+              date={post.data.date}
+              tags={post.data.tags}
+              slug={post.slug}
+              readingTime={calculateReadingTime(post.body)}
+            />
+          ))}
+        </div>
+        <div class="view-all-container">
+          <a href="/blog" class="view-all-btn">View All Articles →</a>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Tags Cloud -->
+    <section class="tags-section">
+      <div class="container">
+        <h2 class="section-title">Browse by Topic</h2>
+        <div class="tags-cloud">
+          {allTags.map((tag) => (
+            <a href={`/tags/${tag}`} class="tag-cloud-item">{tag}</a>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <Footer />
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: var(--spacing-xl) 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(245, 230, 66, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  
+  .hero-title {
+    font-size: clamp(4rem, 12vw, 10rem);
+    line-height: 1;
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: 0.05em;
+  }
+  
+  .hero-title-main {
+    color: var(--color-text);
+  }
+  
+  .hero-separator {
+    color: var(--color-accent);
+    margin: 0 0.5rem;
+  }
+  
+  .hero-title-sub {
+    color: var(--color-text-muted);
+  }
+  
+  .hero-tagline {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    color: var(--color-text-dim);
+  }
+  
+  .stat-divider {
+    color: var(--color-border);
+  }
+  
+  .scroll-indicator {
+    position: absolute;
+    bottom: var(--spacing-md);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-dim);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    animation: bounce 2s ease infinite;
+  }
+  
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(10px); }
+  }
+  
+  .featured-section {
+    padding: var(--spacing-lg) 0;
+  }
+  
+  .featured-post {
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-medium);
+  }
+  
+  .featured-post:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-4px);
+  }
+  
+  .featured-link {
+    display: block;
+    padding: var(--spacing-lg);
+    color: inherit;
+  }
+  
+  .featured-badge {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .featured-title {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    line-height: 1.2;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .featured-excerpt {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+    max-width: 600px;
+  }
+  
+  .featured-meta {
+    display: flex;
+    gap: var(--spacing-md);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    color: var(--color-text-dim);
+  }
+  
+  .recent-posts-section {
+    padding: var(--spacing-lg) 0;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+  }
+  
+  .view-all-container {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+  }
+  
+  .view-all-btn {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-accent);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+  }
+  
+  .view-all-btn:hover {
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+  
+  .tags-section {
+    padding: var(--spacing-lg) 0 var(--spacing-xl);
+  }
+  
+  .tags-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+  
+  .tag-cloud-item {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+  }
+  
+  .tag-cloud-item:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+  
+  @media (max-width: 768px) {
+    .hero {
+      padding: var(--spacing-lg) 0;
+    }
+    
+    .featured-link {
+      padding: var(--spacing-md);
+    }
+    
+    .posts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
