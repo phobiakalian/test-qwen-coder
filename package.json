@@ -1,19 +1,19 @@
 {
   "name": "yn-blog",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview"
   },
-  "keywords": [],
+  "keywords": ["blog", "astro", "personal-blog"],
   "author": "YN",
-  "license": "ISC",
+  "license": "MIT",
   "description": "YN | BLOG - Thoughts on code & life",
   "dependencies": {
-    "@astrojs/mdx": "^2.3.1",
-    "astro": "^4.16.19",
-    "shiki": "^1.29.2"
+    "@astrojs/mdx": "^4.3.5",
+    "astro": "^5.6.1",
+    "shiki": "^3.2.2"
   }
 }
